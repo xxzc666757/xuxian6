@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#4f46e5" />
+<title>使用指南 - 许仙转码授权平台 | 腾讯授权码解析与四种模式说明</title>
+<meta name="description" content="许仙转码授权平台使用指南：腾讯 qzapp 授权码结构拆解、JSON / Base64 / AES-GCM 四种模式操作步骤、OP/Auth 与风控自检用法。" />
+<meta name="keywords" content="许仙转码使用指南,腾讯授权码解析教程,qzapp协议,Base64解码教程,AES-GCM加密" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="https://xuxian-txc.surge.sh/guide.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="许仙转码授权平台" />
+<meta property="og:title" content="使用指南 - 许仙转码授权平台 | 腾讯授权码解析与四种模式说明" />
+<meta property="og:description" content="许仙转码授权平台使用指南：腾讯 qzapp 授权码结构拆解、JSON / Base64 / AES-GCM 四种模式操作步骤、OP/Auth 与风控自检用法。" />
+<meta property="og:url" content="https://xuxian-txc.surge.sh/guide.html" />
+<meta property="og:image" content="https://xuxian-txc.surge.sh/assets/wallpaper.jpg" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="twitter:card" content="summary" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="assets/style.css" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://xuxian-txc.surge.sh/" },
+    { "@type": "ListItem", "position": 2, "name": "使用指南", "item": "https://xuxian-txc.surge.sh/guide.html" }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <h1>使用指南</h1>
+    <p class="status">四种模式 · 协议结构 · 操作步骤</p>
+  </section>
+
+  <section class="panel doc">
+
+    <h2>四种转码模式</h2>
+    <p>许仙转码授权平台把日常遇到的编码、加密数据统一收进一个输入框，按数据类型切换模式即可，全部在浏览器本地完成计算。</p>
+    <ul>
+      <li><strong>腾讯</strong> —— 解析腾讯 qzapp 授权码，还原 <code>access_token</code>、<code>openid</code>、<code>pay_token</code> 等字段。</li>
+      <li><strong>JSON</strong> —— 自动截掉前后杂质，格式化成缩进结构，统计键值数量。</li>
+      <li><strong>Base64</strong> —— 解码任意 Base64 串，自动判断 UTF-8 或二进制，并做回编码校验。</li>
+      <li><strong>密钥</strong> —— AES-GCM 双向运算，密文自动解密、明文自动加密。</li>
+    </ul>
+
+    <h2>腾讯授权码是怎么组成的</h2>
+    <p>这类授权码本质是一段被包了两层的查询串，结构固定，因此可以完整还原：</p>
+    <pre><code>t          = URLSearchParams(fields).toString()
+pasteboard = base64(t)
+url        = tencent{appid}://qzapp/mqzone/0?objectlocation=url&amp;pasteboard={pasteboard}
+enterCode  = "MOCK." + base64(url)</code></pre>
+    <p>字段顺序为 <code>access_token / openid / pay_token / expires_in / encrytoken / pf / pfkey / ret</code>。把上面的链路倒过来走一遍，就是「解析」；正着走，就是「生成」。</p>
+
+    <h3>可以接受的输入形态</h3>
+    <ul>
+      <li>完整链接：<code>tencent1111677210://qzapp/mqzone/0?objectlocation=url&amp;pasteboard=...</code></li>
+      <li>带前缀的授权码：<code>MOCK.dGVuY2VudDEx...</code></li>
+      <li>裸 pasteboard base64 串</li>
+      <li>裸查询串：<code>access_token=...&amp;openid=...</code></li>
+    </ul>
+
+    <h2>操作步骤</h2>
+    <ol>
+      <li>在上方四个标签里选择数据类型。</li>
+      <li>把原始数据粘贴进「数据解析」输入框。</li>
+      <li>点「开始解析」，结果区会给出解码内容与逐条处理轨迹。</li>
+      <li>解析出的字段会列成明细表，单行可复制；底部四宫格可一键复制整份结果或原始数据。</li>
+    </ol>
+
+    <h2>密钥模式说明</h2>
+    <p>密钥派生与加密参数和主流实现保持一致：</p>
+    <pre><code>key = SHA-256(passphrase)          // 32 字节
+iv  = random(12)                   // 前置到密文之前
+out = base64(iv || AES-GCM(key, iv, plaintext))</code></pre>
+    <div class="note">同一段密文用错误密钥解密会被 GCM 认证直接拒绝，不会返回乱码，这一点可以用来判断密钥是否正确。</div>
+
+    <h2>OP/Auth 与风控自检</h2>
+    <p><strong>OP/Auth</strong> 按钮会把当前字段组装成三种常见形态：Query 串、<code>openid|access_token</code> 管道串、以及 <code>Basic</code> Base64 头，方便直接贴进调试工具。</p>
+    <p><strong>做违规</strong> 按钮执行字段体检：检查凭证是否齐全、<code>expires_in</code> 折算剩余天数、token 长度是否合理、<code>ret</code> 是否成功，最后给出放行或回退建议。</p>
+
+    <div class="back"><a href="index.html">← 返回转码控制台</a></div>
+  </section>
+
+  <footer>
+    <nav class="site-links" aria-label="站内导航">
+      <a href="index.html">首页</a>
+      <a href="guide.html">使用指南</a>
+      <a href="faq.html">常见问题</a>
+      <a href="about.html">关于本站</a>
+    </nav>
+    © 2026 <b>许仙</b> 转码控制台 · 本地离线转码 · v20261112<br/>
+    协议：腾讯 qzapp / JSON / Base64 / AES-GCM
+  </footer>
+</div>
+</body>
+</html>

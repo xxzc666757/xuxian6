@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# 图片与静态资源可抓取
+Allow: /assets/
+Allow: /favicon.svg
+
+Sitemap: https://xuxian-txc.surge.sh/sitemap.xml

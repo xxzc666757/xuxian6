@@ -1,0 +1,16 @@
+{
+  "name": "许仙转码授权平台",
+  "short_name": "许仙转码",
+  "description": "腾讯 qzapp 授权码解析 / JSON / Base64 / AES-GCM 在线转码工具",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070916",
+  "theme_color": "#4f46e5",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/wallpaper.jpg", "sizes": "649x1280", "type": "image/jpeg" }
+  ]
+}

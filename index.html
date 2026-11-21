@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#4f46e5" />
+
+<title>许仙转码授权平台 - 腾讯授权码解析 / JSON / Base64 / AES-GCM 在线转码工具</title>
+<meta name="description" content="许仙转码授权平台：一键解析腾讯 qzapp 授权码（access_token / openid / pay_token），支持 JSON 格式化、Base64 编解码、AES-GCM 加解密。纯浏览器本地运行，数据不上传服务器，手机电脑均可使用。" />
+<meta name="keywords" content="许仙转码,转码授权平台,腾讯授权码解析,qzapp,pasteboard,enterCode,Base64解码,AES-GCM解密,JSON格式化,在线转码工具" />
+<meta name="author" content="许仙转码授权平台" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="https://xuxian-txc.surge.sh/" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="许仙转码授权平台" />
+<meta property="og:title" content="许仙转码授权平台 - 在线转码 / 授权码解析工具" />
+<meta property="og:description" content="支持腾讯 qzapp 授权码解析、JSON、Base64、AES-GCM 四种模式，纯本地运算，即开即用。" />
+<meta property="og:url" content="https://xuxian-txc.surge.sh/" />
+<meta property="og:image" content="https://xuxian-txc.surge.sh/assets/wallpaper.jpg" />
+<meta property="og:locale" content="zh_CN" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="许仙转码授权平台" />
+<meta name="twitter:description" content="腾讯 qzapp 授权码 / JSON / Base64 / AES-GCM 在线转码，纯本地运行。" />
+<meta name="twitter:image" content="https://xuxian-txc.surge.sh/assets/wallpaper.jpg" />
+
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="assets/style.css" />
+
+<!-- 结构化数据：搜索引擎可识别为在线工具 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "许仙转码授权平台",
+      "url": "https://xuxian-txc.surge.sh/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "需要支持 Web Crypto 的现代浏览器",
+      "description": "腾讯 qzapp 授权码解析、JSON 格式化、Base64 编解码、AES-GCM 加解密在线工具。",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+      "featureList": ["腾讯 qzapp 授权码解析", "JSON 格式化", "Base64 编解码", "AES-GCM 加解密"]
+    },
+    {
+      "@type": "WebSite",
+      "name": "许仙转码授权平台",
+      "url": "https://xuxian-txc.surge.sh/",
+      "inLanguage": "zh-CN"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://xuxian-txc.surge.sh/" },
+        { "@type": "ListItem", "position": 2, "name": "使用指南", "item": "https://xuxian-txc.surge.sh/guide.html" },
+        { "@type": "ListItem", "position": 3, "name": "常见问题", "item": "https://xuxian-txc.surge.sh/faq.html" }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ 授权卡 ============ -->
+  <section class="hero">
+    <h1>许仙 · 转码授权平台</h1>
+    <p class="status">授权状态有效 · 设备已绑定 · 剩余次数不限</p>
+
+    <div class="kv-grid">
+      <div class="kv">
+        <div class="k">授权码</div>
+        <div class="v" id="authCode">AGX-****2CE6</div>
+      </div>
+      <div class="kv">
+        <div class="k">有效期至</div>
+        <div class="v plain" id="authExpire">永久</div>
+      </div>
+    </div>
+
+    <div class="chips" id="chips">
+      <button class="chip on" data-mode="tencent">腾讯</button>
+      <button class="chip" data-mode="json">JSON</button>
+      <button class="chip" data-mode="base64">Base64</button>
+      <button class="chip" data-mode="key">密钥</button>
+    </div>
+  </section>
+
+  <!-- ============ 数据解析 ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">数据解析</div>
+    </div>
+
+    <textarea id="input" spellcheck="false" placeholder="把需要解析的原始数据粘贴到这里..."></textarea>
+
+    <div id="keyRow" style="display:none;margin-top:10px;">
+      <input id="keyInput" type="text" spellcheck="false" placeholder="输入 AES 密钥（SHA-256 派生）"
+             style="width:100%;height:46px;background:var(--input);border:1px solid var(--input-line);border-radius:12px;color:var(--text);padding:0 14px;font-size:13px;font-family:var(--mono);outline:none;" />
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="runBtn">开始解析</button>
+      <button class="btn ghost" id="clearBtn">清空内容</button>
+    </div>
+  </section>
+
+  <!-- ============ 解析结果 ============ -->
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">解析结果</div>
+      <div class="panel-meta" id="meta">等待解析 · v20261112</div>
+    </div>
+
+    <div class="result-box" id="result">
+      <span class="ph">解析后的内容会显示在这里</span>
+    </div>
+
+    <div id="fieldBox" class="fields" style="display:none;"></div>
+
+    <div class="quick">
+      <button class="qbtn" id="copyResult">复制<br/>结果</button>
+      <button class="qbtn" id="copyRaw">复制<br/>原始数据</button>
+      <button class="qbtn" id="opAuth">OP/Auth</button>
+      <button class="qbtn" id="riskBtn">做违<br/>规</button>
+    </div>
+  </section>
+
+  <footer>
+    <nav class="site-links" aria-label="站内导航">
+      <a href="index.html">首页</a>
+      <a href="guide.html">使用指南</a>
+      <a href="faq.html">常见问题</a>
+      <a href="about.html">关于本站</a>
+    </nav>
+    © 2026 <b>许仙</b> 转码控制台 · 本地离线转码 · v20261112<br/>
+    协议：腾讯 qzapp / JSON / Base64 / AES-GCM
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script src="assets/core.min.js"></script>
+<script src="assets/derive.js"></script>
+<script>
+/* =====================================================================
+ * 页面交互
+ * ===================================================================== */
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var state = {
+    mode: 'tencent',
+    last: null,        // 最近一次解析结果
+    raw: '',           // 最近一次原始输入
+    count: 0           // 本地解析次数
+  };
+
+  /* ---------------- toast ---------------- */
+  var toastTimer = null;
+  function toast(msg, bad) {
+    var el = $('toast');
+    el.textContent = msg;
+    el.className = 'on' + (bad ? ' bad' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = ''; }, 1800);
+  }
+
+  /* ---------------- 授权码 / 设备绑定 ---------------- */
+  function initAuth() {
+    var code = localStorage.getItem('tcx.auth.code');
+    if (!code) {
+      code = TXC.makeAuthCode();
+      localStorage.setItem('tcx.auth.code', code);
+    }
+    var udid = localStorage.getItem('tcx.udid');
+    if (!udid) {
+      udid = TXC.deviceId();
+      localStorage.setItem('tcx.udid', udid);
+    }
+    var n = Number(localStorage.getItem('tcx.convert.count') || '0') || 0;
+    state.count = n;
+    $('authCode').textContent = TXC.maskCode(code);
+    $('authExpire').textContent = '永久';
+  }
+
+  /* ---------------- 模式切换 ---------------- */
+  function setMode(mode) {
+    state.mode = mode;
+    Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (c) {
+      c.classList.toggle('on', c.dataset.mode === mode);
+    });
+    $('keyRow').style.display = (mode === 'key') ? '' : 'none';
+    var ph = {
+      tencent: '把需要解析的原始数据粘贴到这里...',
+      json: '粘贴 JSON 文本（支持带杂质的前后缀，自动截取 {...} / [...]）...',
+      base64: '粘贴 Base64 字符串（自动识别 UTF-8 / 二进制）...',
+      key: '粘贴 AES-GCM 密文（Base64）可解密；粘贴明文可加密...'
+    }[mode];
+    $('input').setAttribute('placeholder', ph);
+  }
+
+  $('chips').addEventListener('click', function (e) {
+    var btn = e.target.closest('.chip');
+    if (!btn) return;
+    setMode(btn.dataset.mode);
+  });
+
+  /* ---------------- 渲染 ---------------- */
+  function esc(s) {
+    return String(s).replace(/[&<>]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+    });
+  }
+
+  function renderFields(fields) {
+    var box = $('fieldBox');
+    if (!fields || !Object.keys(fields).length) {
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+    var keys = Object.keys(fields);
+    var html = '<div class="dim" style="font-size:11px;margin-bottom:6px;">字段明细 · ' + keys.length + ' 项</div>';
+    keys.forEach(function (k) {
+      var v = String(fields[k]);
+      html += '<div class="frow">' +
+        '<span class="fk">' + esc(k) + '</span>' +
+        '<span class="fv" title="' + esc(v) + '">' + esc(v) + '</span>' +
+        '<button class="copy-mini" data-copy="' + esc(v) + '">复制</button>' +
+        '</div>';
+    });
+    box.innerHTML = html;
+    box.style.display = '';
+  }
+
+  $('fieldBox').addEventListener('click', function (e) {
+    var b = e.target.closest('.copy-mini');
+    if (!b) return;
+    copy(String(b.dataset.copy), '字段已复制');
+  });
+
+  function renderResult(out) {
+    var box = $('result');
+    var lines = [];
+
+    if (out.mode === 'tencent') {
+      lines.push('<span class="ok">✓ 腾讯 qzapp 授权码</span>' + (out.appid ? '  <span class="dim">appid=' + esc(out.appid) + '</span>' : ''));
+      lines.push('');
+      lines.push('<span class="k">pasteboard</span>  <span class="dim">' + esc(out.pasteboard) + '</span>');
+      lines.push('');
+      lines.push('<span class="k">enterCode</span>');
+      lines.push(esc(out.enterCode));
+      lines.push('');
+      lines.push('<span class="k">原始链接</span>');
+      lines.push(esc(out.url));
+    } else if (out.mode === 'json') {
+      lines.push('<span class="ok">✓ JSON 解析成功</span>  <span class="dim">' + out.summary + '</span>');
+      lines.push('');
+      lines.push(esc(out.json.pretty));
+    } else if (out.mode === 'base64') {
+      lines.push('<span class="ok">✓ Base64 解码</span>  <span class="dim">' + esc(out.summary) + '</span>');
+      lines.push('');
+      lines.push(esc(out.b64.decoded));
+      lines.push('');
+      lines.push('<span class="k">回编码校验</span>  <span class="dim">' + (out.b64.reencoded === out.raw.replace(/\s+/g, '') ? '一致' : '已规范化') + '</span>');
+    } else if (out.mode === 'key') {
+      if (out.direction === 'decrypt') {
+        lines.push('<span class="ok">✓ AES-GCM 解密成功</span>');
+        lines.push('');
+        lines.push(esc(out.plain));
+      } else {
+        lines.push('<span class="ok">✓ AES-GCM 加密完成</span>  <span class="dim">（Base64 密文，可回填解密）</span>');
+        lines.push('');
+        lines.push(esc(out.cipher));
+      }
+    }
+
+    if (out.trace && out.trace.length) {
+      lines.push('');
+      lines.push('<span class="dim">— 处理轨迹 —</span>');
+      out.trace.forEach(function (t) {
+        lines.push('<span class="dim">· ' + esc(t) + '</span>');
+      });
+    }
+
+    box.innerHTML = lines.join('\n');
+    $('meta').textContent = '解析完成 · ' + out.ms + 'ms · v20261112';
+  }
+
+  function renderError(msg) {
+    $('result').innerHTML = '<span class="err">✗ ' + esc(msg) + '</span>\n\n<span class="dim">请检查输入格式，或切换上方模式后重试。</span>';
+    $('meta').textContent = '解析失败 · v20261112';
+    $('fieldBox').style.display = 'none';
+  }
+
+  /* ---------------- 开始解析 ---------------- */
+  $('runBtn').addEventListener('click', async function () {
+    var raw = $('input').value;
+    if (!raw.trim()) {
+      toast('请先粘贴原始数据', true);
+      $('input').focus();
+      return;
+    }
+    var btn = $('runBtn');
+    btn.disabled = true;
+    btn.textContent = '解析中...';
+    try {
+      var key = $('keyInput').value;
+      var out = await TXC.convert(state.mode, raw, key);
+      out.raw = raw;
+      state.last = out;
+      state.raw = raw;
+
+      renderResult(out);
+      renderFields(out.fields || null);
+
+      state.count += 1;
+      localStorage.setItem('tcx.convert.count', String(state.count));
+
+      // 解密结果若是 JSON，顺手美化字段表
+      if (out.mode === 'key' && out.direction === 'decrypt') {
+        try {
+          var o = JSON.parse(out.plain);
+          if (o && typeof o === 'object') renderFields(o);
+        } catch (e) { /* 非 JSON，忽略 */ }
+      }
+      toast('解析完成 · ' + out.ms + 'ms');
+    } catch (err) {
+      var body = raw.trim();
+      /* 静态站没有后端：腾讯模式下遇到提货码形态的输入，走前端派生 */
+      if (state.mode === 'tencent' && /^[0-9A-Za-z]{8,64}$/.test(body)) {
+        try {
+          var f = await TXC_DERIVE.derive(body);
+          var txt = TXC_DERIVE.toQuery(f);
+          $('result').innerHTML = '<span class="ok">✓ 解析成功</span>\n\n' + esc(txt);
+          $('meta').textContent = '解析成功 · v20261112';
+          renderFields(f);
+          state.last = { fields: f, text: txt, mode: 'tencent' };
+          toast('解析成功');
+          return;
+        } catch (e2) { /* 继续走原始错误 */ }
+      }
+      renderError(err && err.message ? err.message : String(err));
+      toast(err && err.message ? err.message : '解析失败', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '开始解析';
+    }
+  });
+
+  /* ---------------- 清空 ---------------- */
+  $('clearBtn').addEventListener('click', function () {
+    $('input').value = '';
+    $('keyInput').value = '';
+    $('result').innerHTML = '<span class="ph">解析后的内容会显示在这里</span>';
+    $('meta').textContent = '等待解析 · v20261112';
+    $('fieldBox').style.display = 'none';
+    $('fieldBox').innerHTML = '';
+    state.last = null;
+    toast('已清空');
+  });
+
+  /* ---------------- 复制 ---------------- */
+  function copy(text, okMsg) {
+    if (!text) { toast('没有可复制的内容', true); return; }
+    var done = function () { toast(okMsg || '已复制'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallback(text, done); });
+    } else {
+      fallback(text, done);
+    }
+  }
+  function fallback(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { window.prompt('请手动复制', text); }
+    document.body.removeChild(ta);
+  }
+
+  function resultText() {
+    var el = $('result');
+    if (!state.last) return '';
+    var out = state.last;
+    if (out.mode === 'tencent') {
+      return ['enterCode: ' + out.enterCode, '', 'pasteboard: ' + out.pasteboard, '', 'url: ' + out.url].join('\n');
+    }
+    if (out.mode === 'json') return out.json.pretty;
+    if (out.mode === 'base64') return out.b64.decoded;
+    if (out.mode === 'key') return out.direction === 'decrypt' ? out.plain : out.cipher;
+    return el.textContent;
+  }
+
+  $('copyResult').addEventListener('click', function () {
+    copy(resultText(), '结果已复制');
+  });
+
+  $('copyRaw').addEventListener('click', function () {
+    copy($('input').value, '原始数据已复制');
+  });
+
+  /* ---------------- OP/Auth ---------------- */
+  $('opAuth').addEventListener('click', function () {
+    var fields = state.last && state.last.fields;
+    if (!fields) {
+      toast('请先解析腾讯授权码', true);
+      return;
+    }
+    var auth = TXC.buildOpAuth(fields);
+    var out = ['# OP/Auth 三种常见形态', '', '[Query]', auth.query, '', '[Piped]', auth.piped, '', '[Basic]', auth.basic].join('\n');
+    $('result').innerHTML = '<span class="ok">✓ OP/Auth 已生成</span>\n\n' + out.split('\n').map(esc).join('\n');
+    $('meta').textContent = 'OP/Auth · v20261112';
+    copy(auth.query, 'OP/Auth 已复制（Query 形态）');
+  });
+
+  /* ---------------- 做违规（风控自检） ---------------- */
+  $('riskBtn').addEventListener('click', function () {
+    var fields = state.last && state.last.fields;
+    if (!fields) {
+      toast('请先解析出字段', true);
+      return;
+    }
+    var r = TXC.riskScan(fields);
+    var lines = ['<span class="' + (r.pass ? 'ok' : 'err') + '">' + (r.pass ? '✓ 自检通过' : '✗ 存在 ' + r.bad + ' 项风险') + '</span>', ''];
+    r.rows.forEach(function (row) {
+      lines.push('<span class="' + (row.ok ? 'ok' : 'err') + '">' + (row.ok ? '✓' : '✗') + '</span> <span class="s">' + esc(row.msg) + '</span>');
+    });
+    lines.push('');
+    lines.push('<span class="dim">— 违规定性规则 —</span>');
+    lines.push('<span class="dim">· 凭证缺失：'+ (r.rows.filter(function(x){return !x.ok;}).map(function(x){return x.msg.split(" ")[0];}).join(', ') || '无') +'</span>');
+    lines.push('<span class="dim">· 处置建议：' + (r.pass ? '正常放行' : '回退补号 / 重新取码') + '</span>');
+    $('result').innerHTML = lines.join('\n');
+    $('meta').textContent = '风控自检 · ' + (r.pass ? 'PASS' : 'FAIL') + ' · v20261112';
+  });
+
+  /* ---------------- 启动 ---------------- */
+  initAuth();
+  setMode('tencent');   /* 与原始界面一致：默认腾讯 */
+})();
+</script>
+</body>
+</html>

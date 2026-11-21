@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#4f46e5" />
+<title>关于本站 - 许仙转码授权平台 | 技术构成与版本记录</title>
+<meta name="description" content="许仙转码授权平台的技术构成：原生前端、15KB 零依赖转码内核、Web Crypto AES-GCM、纯本地运行与版本记录。" />
+<meta name="keywords" content="许仙转码,关于本站,转码内核,Web Crypto,AES-GCM" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="https://xuxian-txc.surge.sh/about.html" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="许仙转码授权平台" />
+<meta property="og:title" content="关于本站 - 许仙转码授权平台 | 技术构成与版本记录" />
+<meta property="og:description" content="许仙转码授权平台的技术构成：原生前端、15KB 零依赖转码内核、Web Crypto AES-GCM、纯本地运行与版本记录。" />
+<meta property="og:url" content="https://xuxian-txc.surge.sh/about.html" />
+<meta property="og:image" content="https://xuxian-txc.surge.sh/assets/wallpaper.jpg" />
+<meta property="og:locale" content="zh_CN" />
+<meta name="twitter:card" content="summary" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="assets/style.css" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://xuxian-txc.surge.sh/" },
+    { "@type": "ListItem", "position": 2, "name": "关于本站", "item": "https://xuxian-txc.surge.sh/about.html" }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <h1>关于本站</h1>
+    <p class="status">技术构成 · 支持格式 · 版本记录</p>
+  </section>
+
+  <section class="panel doc">
+
+    <h2>关于本站</h2>
+    <p>许仙转码授权平台是一个纯前端的在线转码工具，把常见的授权码解析、编码转换、对称加解密收在同一个界面里，省去在不同站点之间来回切换的麻烦。</p>
+
+    <h2>技术构成</h2>
+    <ul>
+      <li>界面：原生 HTML + CSS，无框架、无构建步骤，首屏直出。</li>
+      <li>转码内核：单个 <code>engine.js</code>，约 15 KB，零依赖。</li>
+      <li>加密：浏览器原生 Web Crypto（<code>crypto.subtle</code>），AES-GCM 256 位。</li>
+      <li>存储：仅使用 <code>localStorage</code> 记录本机授权标识与解析次数。</li>
+      <li>网络：页面不发起任何外部请求，可离线运行。</li>
+    </ul>
+
+    <h2>支持的格式</h2>
+    <pre><code>腾讯 qzapp   tencent{appid}://qzapp/...?pasteboard={base64}
+JSON         任意对象 / 数组，允许前后带杂质
+Base64       标准与 URL-safe，自动补齐 padding
+AES-GCM      base64(iv[12] || ciphertext)，SHA-256 派生密钥</code></pre>
+
+    <h2>设计说明</h2>
+    <p>界面沿用深色紫黑配色与玻璃卡片层，背景支持自定义壁纸；信息层级按「授权状态 → 输入 → 结果 → 快捷操作」四段排列，单手可完成全部操作。</p>
+
+    <h2>版本记录</h2>
+    <ul>
+      <li><strong>v20261112</strong> —— 四种模式全量上线，新增 OP/Auth 与风控自检。</li>
+      <li><strong>v20261101</strong> —— 腾讯授权码双向编解码完成，支持裸 pasteboard 输入。</li>
+      <li><strong>v20261020</strong> —— 首版界面与 AES-GCM 密钥模块。</li>
+    </ul>
+
+    <div class="note">本页所有功能均在本机浏览器内执行，关闭标签页后不留存任何解析数据。</div>
+
+    <div class="back"><a href="index.html">← 返回转码控制台</a></div>
+  </section>
+
+  <footer>
+    <nav class="site-links" aria-label="站内导航">
+      <a href="index.html">首页</a>
+      <a href="guide.html">使用指南</a>
+      <a href="faq.html">常见问题</a>
+      <a href="about.html">关于本站</a>
+    </nav>
+    © 2026 <b>许仙</b> 转码控制台 · 本地离线转码 · v20261112<br/>
+    协议：腾讯 qzapp / JSON / Base64 / AES-GCM
+  </footer>
+</div>
+</body>
+</html>
