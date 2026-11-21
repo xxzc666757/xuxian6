@@ -5,4 +5,4 @@ Allow: /
 Allow: /assets/
 Allow: /favicon.svg
 
-Sitemap: https://xuxian-txc.surge.sh/sitemap.xml
+Sitemap: https://xxzc666757.github.io/xuxian6/sitemap.xml
